@@ -4,17 +4,20 @@
 (*Definition*)
 
 
-Options[Mathpix] = {Echo -> False, Method -> Normal};
-Mathpix[path_String, ops__ : OptionsPattern[]] := Mathpix[Import@path, ops];
-Mathpix[img_Image, ops__ : OptionsPattern[]] := Block[
+Options[Mathpix] = {Print -> False, Method -> Normal};
+Mathpix[path_String, ops : OptionsPattern[]] := Mathpix[Import@path, ops];
+Mathpix[img_Image, ops : OptionsPattern[]] := Block[
 	{raw, ans},
 	raw = MathpixPOST@MathpixHTTP@img;
-	If[raw["error"] != "", Echo[raw["error"], "Error: "];
-	Return[Null]];
+	If[raw["error"] != "", Echo[raw["error"], "Error: "];Return[Null]];
+	ans = raw["latex_styled"];
 	CopyToClipboard@ans;
-	If[OptionValue[Method] == Full, Return@raw];
-	If[OptionValue[Method] == Normal, Return@raw["latex_styled"]];
-	Return@Null
+	If[TrueQ@OptionValue[Print], Print@Codecogs[ans]];
+	Switch[OptionValue[Method],
+		Full, raw,
+		Normal, ans,
+		_, Null
+	]
 ];
 
 
