@@ -5,6 +5,13 @@
 
 
 (* ::Subsubsection:: *)
+(*Initialization*)
+
+
+ClearAll["`*"];
+
+
+(* ::Subsubsection:: *)
 (*Wrap Function*)
 
 
@@ -12,16 +19,17 @@
 (*Main Function*)
 
 
-ClearAll["`*"];
 Options[DeepDream\[Alpha]] = {
 	"Depth" -> 24,
 	"StepSize" -> 1,
-	"LastStepOnly" -> True,
 	TargetDevice -> "CPU",
 	WorkingPrecision -> "Real32"
 };
 DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module[
-	{VGG, net, res, step = OptionValue["StepSize"], $start = AbsoluteTime[]},
+	{
+		VGG, net, res, i, $save,
+		step = OptionValue["StepSize"], $start = AbsoluteTime[]
+	},
 	VGG = NetModel["ImageRestyleChoppedVGG16"];
 	net = NetFlatten@NetChain[{VGG, SummationLayer[]}];
 	If[
@@ -30,11 +38,35 @@ DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module
 		Return[]
 	];
 	net = NetReplacePart[net, "Input" -> NetEncoder[{"Image", ImageDimensions@img}]];
-	Check[
-		res = NestList[applyGradient[net, #, step, o]&, img, Floor[steps / step]],
-		Return[$Failed]
+
+	i = 1;
+	$save = {img};
+	CheckAbort[
+		PrintTemporary@GeneralUtilities`InformationPanel[
+			"It doesn't look like anything to me.",
+			{
+				Center :> ProgressIndicator[i / Floor[steps / step]],
+				"Method" :> "DeepDream \[Alpha]",
+				"Elapsed" :> GeneralUtilities`TimeString[AbsoluteTime[] - $start],
+				"ETA" :> GeneralUtilities`TimeString[Abs[1 - Floor[steps / step] / i](AbsoluteTime[] - $start)],
+
+				Center :> Last@$save,
+				Right :> GeneralUtilities`NiceButton["Awake!", Abort[]]
+			},
+			UpdateInterval -> 1,
+			TrackedSymbols -> {i, $save}
+		];
+		While[
+			i < Floor[steps / step],
+			Check[
+				AppendTo[$save, applyGradient[net, Last@$save, step, o]],
+				Return[$save]
+			];
+			i++
+		],
+		Return[$save];
 	];
-	If[OptionValue["LastStepOnly"], Return[Last@res], Return[res]]
+	Return[$save]
 ];
 
 
@@ -43,7 +75,7 @@ DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module
 
 
 Options[applyGradient] = Options[DeepDream\[Alpha]];
-applyGradient[net_, img_, stepsize_, o : OptionsPattern[]] := Module[
+applyGradient[net_, img_, stepsize_, o : OptionsPattern[]] := Block[
 	{imgt, gdimg, gddata, max, dim},
 	gdimg = net[img,
 		NetPortGradient["Input"],
