@@ -19,46 +19,42 @@ ClearAll["`*"];
 (*Main Function*)
 
 
-Options[DeepDreamAlpha] = {
-	"Depth" -> 24,
+Options[DeepDreamBeta] = {
 	"StepSize" -> 1,
+	"Activation" -> Identity,
+	"Eyes" -> 2,
+	Resampling -> "Cubic",
 	TargetDevice -> "CPU",
 	WorkingPrecision -> "Real32"
-};
-DeepDreamAlpha[img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module[
+}
+DeepDreamBeta[net_, image_, steps_Integer : 10, o : OptionsPattern[]] := Module[
 	{
-		VGG, net, res, i, $save,
+		i, $save, zooms, resize, img = image,
 		step = OptionValue["StepSize"], $start = AbsoluteTime[]
 	},
-	VGG = NetModel["ImageRestyleChoppedVGG16"];
-	net = NetFlatten@NetChain[{VGG, SummationLayer[]}];
-	If[
-		0 < OptionValue[Depth] < 31,
-		net = NetTake[net, {1, OptionValue[Depth]}],
-		Return[]
-	];
-	net = NetReplacePart[net, "Input" -> NetEncoder[{"Image", ImageDimensions@img}]];
-
 	i = 1;
-	$save = {img};
+	$save = {image};
 	CheckAbort[
 		PrintTemporary@GeneralUtilities`InformationPanel[
 			"It doesn't look like anything to me.",
 			{
 				Center :> ProgressIndicator[i / Floor[steps / step]],
-				"Method" :> "DeepDream \[Alpha]",
+				"Method" :> "DeepDream \[Beta]",
 				"Elapsed" :> GeneralUtilities`TimeString[AbsoluteTime[] - $start],
 				"ETA" :> GeneralUtilities`TimeString[Abs[1 - Floor[steps / step] / i](AbsoluteTime[] - $start)],
-				Center :> Last@$save,
+				Center :> img,
 				Right :> GeneralUtilities`NiceButton["Awake!", Abort[]]
 			},
 			UpdateInterval -> 1,
-			TrackedSymbols -> {i, $save}
+			TrackedSymbols -> {i, img}
 		];
 		While[
 			i < Floor[steps / step],
 			Check[
-				AppendTo[$save, applyGradient[net, Last@$save, step, o]],
+				img = Last@$save;
+				zooms = ImagePyramid[If[True, img, ImageTake[img, {2, -2}, {2, -2}]]][1 ;; OptionValue["Eyes"]];
+				resize = ImageResize[applyGradient[net, #, 1, o], ImageDimensions[image], Resampling -> OptionValue[Resampling]]&;
+				AppendTo[$save, Mean[resize /@ zooms]],
 				Return[$save]
 			];
 			i++
@@ -69,19 +65,23 @@ DeepDreamAlpha[img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module[
 ];
 
 
+
 (* ::Subsubsection:: *)
 (*Auxiliary Function*)
 
 
-Options[applyGradient] = Options[DeepDreamAlpha];
+getGradient[net_, img_] := Block[
+	{new, forward},
+	new = NetReplacePart[net, "Input" -> NetEncoder[{"Image", ImageDimensions@img}]];
+	forward = NetChain[{new, SummationLayer[]}];
+	NetDecoder["Image"][forward[img, NetPortGradient["Input"], TargetDevice -> "GPU"]]
+];
+Options[applyGradient] = Options[DeepDreamBeta];
 applyGradient[net_, img_, stepsize_, o : OptionsPattern[]] := Block[
 	{imgt, gdimg, gddata, max, dim},
-	gdimg = net[img,
-		NetPortGradient["Input"],
-		TargetDevice -> OptionValue@TargetDevice,
-		WorkingPrecision -> OptionValue@WorkingPrecision
-	];
-	gddata = ImageData[NetDecoder["Image"][gdimg]];
+	gdimg = getGradient[net, img];
+	gddata = ImageData[gdimg];
 	max = Max@Abs@gddata;
-	Image@Clip[ImageData[img] + stepsize * gddata / max]
+	Image[Clip[ImageData[img] + stepsize * gddata / max]]
 ];
+

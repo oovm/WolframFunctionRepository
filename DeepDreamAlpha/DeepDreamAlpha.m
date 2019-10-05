@@ -19,15 +19,15 @@ ClearAll["`*"];
 (*Main Function*)
 
 
-Options[DeepDream\[Alpha]] = {
+Options[DeepDreamAlpha] = {
 	"Depth" -> 24,
 	"StepSize" -> 1,
 	TargetDevice -> "CPU",
 	WorkingPrecision -> "Real32"
 };
-DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module[
+DeepDreamAlpha[img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module[
 	{
-		VGG, net, res, i, $save,
+		VGG, net, i, $save,
 		step = OptionValue["StepSize"], $start = AbsoluteTime[]
 	},
 	VGG = NetModel["ImageRestyleChoppedVGG16"];
@@ -49,7 +49,6 @@ DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module
 				"Method" :> "DeepDream \[Alpha]",
 				"Elapsed" :> GeneralUtilities`TimeString[AbsoluteTime[] - $start],
 				"ETA" :> GeneralUtilities`TimeString[Abs[1 - Floor[steps / step] / i](AbsoluteTime[] - $start)],
-
 				Center :> Last@$save,
 				Right :> GeneralUtilities`NiceButton["Awake!", Abort[]]
 			},
@@ -74,7 +73,7 @@ DeepDream\[Alpha][img_Image, steps_Integer : 10, o : OptionsPattern[]] := Module
 (*Auxiliary Function*)
 
 
-Options[applyGradient] = Options[DeepDream\[Alpha]];
+Options[applyGradient] = Options[DeepDreamAlpha];
 applyGradient[net_, img_, stepsize_, o : OptionsPattern[]] := Block[
 	{imgt, gdimg, gddata, max, dim},
 	gdimg = net[img,
