@@ -8,14 +8,22 @@
 (*Wrap Function*)
 
 
-Options[LightsOutSolution] = {
+ClearAll[LightsOutSolution];
+SetAttributes[LightsOutSolution, HoldFirst];
+$OptionsDefault = {
 	Unique -> True,
-	Mesh -> None,
-	Show -> True
+	Mesh -> All,
+	Show -> True,
+	Frame -> True
 };
+Options[LightsOutSolution] = DeleteDuplicatesBy[Join[$OptionsDefault, Options[ArrayPlot]], First];
+
+
 LightsOutSolution[n_Integer, OptionsPattern[]] := Block[
 	{sols, plot},
-	sols = If[TrueQ@OptionValue@Unique,
+	If[n <= 0, Return[]]
+		sols = If[
+		TrueQ@OptionValue@Unique,
 		essentialSolutions[n],
 		allSolutions[n]
 	];
@@ -23,6 +31,15 @@ LightsOutSolution[n_Integer, OptionsPattern[]] := Block[
 	plot = ArrayPlot[#, Mesh -> OptionValue@Mesh]&;
 	plot /@ sols
 ];
+
+
+LightsOutSolution /: Length[LightsOutSolution[n_, OptionsPattern[]]] := Block[
+	{},
+	If[n <= 0, Return[]];
+	If[n > Length@$FastLength, Message[General::ovfl];Return[]];
+	Return[$FastLength[[n]]]
+];
+$FastLength := $FastLength = Last /@ Import["http://oeis.org/A075463/b075463.txt", "Data"];
 
 
 (* ::Subsection:: *)
@@ -41,7 +58,7 @@ b[n_] := Table[1, {n^2}];
 sol[n_] := LinearSolve[m[n], b[n], Modulus -> 2];
 
 
-allSolutions[n_] := allSolutions[n] = Module[
+allSolutions[n_] := Module[
 	{s = sol[n], k = ker[n]},
 	Mod[(s + #)& /@ (Total[(# * k)]& /@ Tuples[{0, 1}, Length[k]]), 2]
 ];
@@ -57,8 +74,7 @@ DihedralOrbit[m_] := Union@Join[
 	MatrixRotate[m, #]& /@ Range[0, 3],
 	MatrixRotate[Reverse[m], #]& /@ Range[0, 3]
 ];
-essentialSolutions[n_] := Module[
-	{as},
-	as = Partition[#, n]& /@ allSolutions[n];
+essentialSolutions[n_] := essentialSolutions[n] = Module[
+	{as = Partition[#, n]& /@ allSolutions[n]},
 	Union[as, SameTest -> (MemberQ[DihedralOrbit[#1], #2]&)]
 ];
