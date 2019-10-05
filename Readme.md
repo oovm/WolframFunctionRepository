@@ -1,7 +1,4 @@
 Function Issue Tracer
 =====================
 
-
-
-
-Function trace
+Tracking the features and issues of these functions I uploaded.
