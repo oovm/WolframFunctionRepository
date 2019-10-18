@@ -3,6 +3,14 @@
 Clear["`*"];
 
 
+(* ::Chapter:: *)
+(*Cell*)
+
+
+(* ::Section:: *)
+(*Default*)
+
+
 NotebookToMarkdown[nb_NotebookObject] := StringJoin@Flatten[NotebookToMarkdown /@ Cells[nb]];
 NotebookToMarkdown[co_CellObject] := NotebookToMarkdown[NotebookRead[co], co];
 NotebookToMarkdown[c_Cell, co_CellObject] := NotebookToMarkdown[#2, #, co]& @@ c;
@@ -10,6 +18,10 @@ NotebookToMarkdown[s_, o___] := (
 	Echo[Inactive[NotebookToMarkdown][s, o], "Todo: "];
 	TemplateApply["[//]: # (No rules defined for ``)\n\n", {s}]
 );
+
+
+(* ::Section:: *)
+(*Normal*)
 
 
 NotebookToMarkdown["Title", data_, co_CellObject] := {"#", parseData@data, "\n\n"};
@@ -21,6 +33,10 @@ NotebookToMarkdown["Subsubsection", data_, co_CellObject] := {"######", parseDat
 
 
 NotebookToMarkdown["Text", data_, co_CellObject] := {parseData@data, "\n\n"};
+
+
+(* ::Section:: *)
+(*Code*)
 
 
 codeStyleQ = MemberQ[{"Code", "Input"}, #] &;
@@ -36,14 +52,49 @@ NotebookToMarkdown[style_?codeStyleQ, data_, cellObj_CellObject] := {
 };
 
 
+getLanguage[co_CellObject] := Switch[
+	CurrentValue[co, CellEvaluationLanguage],
+	"NodeJS", "javascript",
+	"Python", "python"
+];
+NotebookToMarkdown["ExternalLanguage", text_String, co_CellObject] := {
+	"```", getLanguage[co], "\n", text, "\n```\n\n"
+};
+
+
+(* ::Section:: *)
+(*TeX*)
+
+
+boxesToTeX = ToString[ToExpression@#, TeXForm] &;
+NotebookToMarkdown["Output", BoxData[FormBox[boxes_, TraditionalForm]], cellObj_CellObject] := TemplateApply["$$``$$\n\n", {boxesToTeX@boxes}];
+
+
+(* ::Section:: *)
+(*Pass*)
+
+
+(* ::Chapter:: *)
+(*Data*)
+
+
 parseData[list_List] := parseData /@ list;
 parseData[string_String] := string;
-parseData[data_(BoxData | TextData)] := List @@ (parseData /@ data);
 parseData[cell_Cell] := parseData@First@cell;
 parseData[boxes_] := (
 	Echo[Inactive[parseData][boxes], "Todo: "];
 	parseData@First@boxes
 );
+
+
+
+
+parseData[data_BoxData] := List @@ (parseData /@ data);
+parseData[data_TextData] := List @@ (parseData /@ data);
+
+
+parseData[TemplateBox[{text_String, link_String}, "HyperlinkURL"]] := TemplateApply["[``](``)", {text, link}]
+
 
 (*
 parseData[StyleBox[expr_, opts___]] := styleWrapper[opts]@parseData[expr];
@@ -64,7 +115,7 @@ parseData[FormBox[boxes : Except[_TagBox], TraditionalForm, ___]] := Module[{teX
 	, teXForm = boxesToTeX@boxes
 	; "$" <> teXForm <> "$"
 ];
-boxesToTeX = ToString[ToExpression@#, TeXForm] &;
+
 
 parseData[box : ButtonBox[_, ___, BaseStyle -> "Hyperlink", ___]] := Module[{label, url}
 	, {label, url} = {#, #2} & @@ ToExpression[box]
