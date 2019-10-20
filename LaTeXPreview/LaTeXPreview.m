@@ -4,27 +4,28 @@
 (*Definition*)
 
 
-Options[LaTeXPreview] = {APIFunction -> "Codecogs"};
-LaTeXPreview[tex_String, args : OptionsPattern[]] := Module[
-	{},
-	Switch[OptionValue[APIFunction],
-		"Codecogs", Codecogs[tex, args],
-		"LaTeX2PNG", LaTeX2PNG[tex, args],
-		_, Null
-	]
+Options[LaTeXPreview] = {
+	APIFunction -> "Codecogs",
+	ImageResolution -> 120
+};
+LaTeXPreview[tex_String, args : OptionsPattern[]] := Switch[
+	OptionValue[APIFunction],
+	"Codecogs", Codecogs[tex, args],
+	"LaTeX2PNG", LaTeX2PNG[tex, args],
+	_, Null
 ];
 
 
-Codecogs[tex_String, OptionsPattern[]] := Import["https://latex.codecogs.com/png.latex?" <> URLEncode@tex, "PNG"];
+Codecogs[tex_String, OptionsPattern[LaTeXPreview]] := Import["https://latex.codecogs.com/png.latex?" <> URLEncode@tex, "PNG"];
 
 
-LaTeX2PNG[tex_String, OptionsPattern[]] := Module[
+LaTeX2PNG[tex_String, OptionsPattern[LaTeXPreview]] := Module[
 	{api, body, http, raw},
 	api = "https://latex2png.com/api/convert";
 	body = <|
 		"auth" -> <|"user" -> "guest", "password" -> "guest"|>,
 		"latex" -> tex,
-		"resolution" -> 120,
+		"resolution" -> OptionValue@ImageResolution,
 		"color" -> "000000"
 	|>;
 	http = HTTPRequest[api, <|"Body" -> ExportString[body, "json"], Method -> "POST"|>];
