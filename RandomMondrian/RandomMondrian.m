@@ -10,14 +10,14 @@
 
 Options[RandomMondrian] = {
 	AspectRatio -> 0.618,
-	MaxIterations -> 7,
 	ImageSize -> Large,
 	EdgeThickness -> Thickness[1 / 150],
 	EdgeColor -> Black,
+	MaxIterations -> 7,
 	"ColorMap" -> Automatic,
 	"Grids" -> 20
 };
-RandomMondrian[o : OptionsPattern[]] := Black[
+RandomMondrian[o : OptionsPattern[]] := Block[
 	{c, w, splitted},
 	{c, w} = Transpose@If[
 		SameQ[OptionValue["ColorMap"], Automatic],
@@ -41,7 +41,6 @@ RandomMondrian[o : OptionsPattern[]] := Black[
 (*Main Function*)
 
 
-
 $DefaultColorMap = {
 	{RGBColor["#000000"], 1}(*Black*),
 	{RGBColor["#878787"], 1}(*Gray*),
@@ -50,10 +49,6 @@ $DefaultColorMap = {
 	{RGBColor["#FACA02"], 4}(*Yellow*),
 	{RGBColor["#FDFDFD"], 16}(*White*)
 };
-
-
-
-
 
 
 split = # /. d : Rectangle[{x1_, y1_}, {x2_, y2_}] :> With[
@@ -73,4 +68,3 @@ split = # /. d : Rectangle[{x1_, y1_}, {x2_, y2_}] :> With[
 		d
 	]
 ]&;
-
