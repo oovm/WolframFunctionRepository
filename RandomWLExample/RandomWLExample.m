@@ -7,8 +7,9 @@
 (* ::Subsubsection:: *)
 (*Wrap Function*)
 
-Options[RandomExample] = {};
-RandomExample[o : OptionsPattern[]] := Block[
+
+Options[RandomWLExample] = {};
+RandomWLExample[o : OptionsPattern[]] := Block[
 	{title, text, file, inputs, output, cap, in, i = 0, j = 1},
 	file = RandomChoice[$ExampleNotebooks];
 	inputs = Import[file, {"Cells", "Input"}];
@@ -22,8 +23,8 @@ RandomExample[o : OptionsPattern[]] := Block[
 		in = CellLabel /. Options[inputs[[j]]];
 		If[StringQ[in], i = ToExpression[StringReplace[in, "In[" ~~ x__ ~~ "]" ~~ __ :> x]]];
 		Sow[inputs[[j++]]]
-	]    ;
-	Paste@Cell[
+	];
+	CellPrint@Cell[
 		CellGroup[Flatten@{title, text[[-1, 1]], output}, CellGrouping -> Automatic],
 		"Output",
 		CellAutoOverwrite -> True,
@@ -37,4 +38,3 @@ RandomExample[o : OptionsPattern[]] := Block[
 
 
 $ExampleNotebooks := $ExampleNotebooks = FileNames["*", DirectoryName[FindFile["ExamplePages/3DLaplacians.nb"]]];
-

@@ -9,27 +9,31 @@
 
 
 ClearAll[Polyomino];
-Options[Polyomino] = {ImageSize -> 60};
-SetAttributes[Polyomino, HoldFirst]
-Polyomino[0]={};
+Options[Polyomino] = {
+	ImageSize -> 60
+};
+SetAttributes[Polyomino, HoldFirst];
+Polyomino[0] = {};
 Polyomino[n_Integer, OptionsPattern[]] := Block[
 	{reg = ArrayMesh@*matrify /@ polyominoes[n]},
-	If[n<0,Return[]];
+	If[n < 0, Return[]];
 	Table[MeshRegion[
-		reg[[i]], ImageSize -> OptionValue[ImageSize],
+		reg[[i]],
+		ImageSize -> OptionValue[ImageSize],
 		MeshCellStyle -> {1 -> Black, 2 -> ColorData[101, "ColorFunction"][i]}
 	], {i, Length[reg]}]
 ];
 
 
-Polyomino /: Length[Polyomino[n_, OptionsPattern[]]] := Block[
-	{},
-	If[n>=Length@$FastLength,Message[General::ovfl];Return[]];
-	If[n<0,Return[]];
-	Return[$FastLength[[n+1]]]
-]
+Polyomino /: Length[Polyomino[a_, OptionsPattern[]]] := Block[
+	{n = Round[a]},
+	If[n >= Length@$FastLength, Message[General::ovfl];Return[]];
+	If[n < 0, Return[]];
+	Return[$FastLength[[n + 1]]]
+];
+(* $FastLength include 0 *)
 $FastLength = {
-	0,1, 1, 2, 5, 12, 35, 108, 369, 1285, 4655, 17073, 63600, 238591,
+	0, 1, 1, 2, 5, 12, 35, 108, 369, 1285, 4655, 17073, 63600, 238591,
 	901971, 3426576, 13079255, 50107909, 192622052, 742624232,
 	2870671950, 11123060678, 43191857688, 168047007728, 654999700403,
 	2557227044764, 9999088822075, 39153010938487, 153511100594603
