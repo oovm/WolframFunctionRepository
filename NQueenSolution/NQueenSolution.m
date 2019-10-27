@@ -8,10 +8,15 @@
 (*Wrap Function*)
 
 
-Options[NQueenSolution] = {};
-NQueenSolution[n_Integer] := Block[
-	{},
-	LinearProgrammingSolver[n]
+Options[NQueenSolution] = {
+	Method -> Unique
+};
+NQueenSolution[n_Integer, o : OptionsPattern[]] := Switch[
+	OptionValue[Method],
+	Unique, LinearProgrammingSolver[n],
+	All, IterationAllSolver[n],
+	Count, FastLength[n],
+	_, Null
 ];
 
 
@@ -19,21 +24,14 @@ NQueenSolution[n_Integer] := Block[
 (*Main Function*)
 
 
-IterationSolverAll[n_] := With[
-	{step = Join @@ Table[Append[a, b], {a, #}, {b, With[{t = Range[Length@a, 1, -1]}, Complement[Range[n], a - t, a, a + t]]}]&},
-	Nest[step, {{}}, n]
+IterationAllSolver[n_Integer] := Nest[Join @@ Table[Append[a, b], {a, #}, {b, With[{t = Range[Length@a, 1, -1]}, Complement[Range[n], a - t, a, a + t]]}]&, {{}}, n];
+
+
+LinearProgrammingSolver[n_Integer] := Module[
+	{c = cQueens[n], m = mQueens[n], lp},
+	lp = Quiet@LinearProgramming[c, m, bQueens[Length@m], vQueens[n], Integers];
+	1 + Mod[Flatten@Position[lp, 1], n]
 ];
-
-LinearProgrammingSolver[n_] := Module[
-	{c, m, b, vars},
-	c = cQueens[n];
-	m = mQueens[n];
-	vars = mQueens2[n];
-	b = bQueens[Length[m]];
-	1 + Mod[Flatten@Position[LinearProgramming[c, m, b, vars, Integers], 1], n]
-];
-
-
 mQueens[n_] := Module[
 	{t, t2, t3, t4},
 	t = mQueensH[n];
@@ -42,9 +40,9 @@ mQueens[n_] := Module[
 	t4 = Append[t3, mQueensDM[n]];
 	Partition[Flatten[t4], n^2]
 ];
-mQueens2[n_] := Table[{0, 1}, {i, n^2}];
-cQueens[n_] := Table[-1, {i, n^2}];
-bQueens[l_] := Table[{1, -1}, {i, l}];
+vQueens[n_] := Array[{0, 1}&, n^2];
+cQueens[n_] := Array[-1 &, n^2];
+bQueens[l_] := Array[{1, -1} &, l];
 
 mQueensH[n_] := Block[
 	{t},
@@ -84,5 +82,20 @@ mQueensDM[n_] := Block[
 ];
 
 
-LinearProgrammingSolver[4] // AbsoluteTiming
 
+
+$A000170 = {
+	1, 0, 0, 2, 10, 4, 40, 92, 352, 724, 2680, 14200, 73712, 365596,
+	2279184, 14772512, 95815104, 666090624, 4968057848, 39029188884,
+	314666222712, 2691008701644, 24233937684440, 227514171973736,
+	2207893435808352, 22317699616364044, 234907967154122528
+};
+FastLength[n_] := Block[
+	{},
+	If[n <= 0, Return[]];
+	If[
+		n > Length@$A000170,
+		Missing[],
+		$A000170[[n]]
+	]
+];
