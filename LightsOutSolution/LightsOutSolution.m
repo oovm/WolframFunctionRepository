@@ -13,23 +13,25 @@ SetAttributes[LightsOutSolution, HoldFirst];
 $OptionsDefault = {
 	Unique -> True,
 	Mesh -> All,
-	Show -> True,
-	Frame -> True
+	RawData -> False,
+	Frame -> False
 };
 Options[LightsOutSolution] = DeleteDuplicatesBy[Join[$OptionsDefault, Options[ArrayPlot]], First];
 
 
-LightsOutSolution[n_Integer, OptionsPattern[]] := Block[
-	{sols, plot},
-	If[n <= 0, Return[]]
-		sols = If[
+LightsOutSolution[n_Integer, o : OptionsPattern[]] := Block[
+	{sols},
+	If[n <= 0, Return[]];
+	sols = If[
 		TrueQ@OptionValue@Unique,
 		essentialSolutions[n],
-		allSolutions[n]
+		Partition[#, n]& /@ allSolutions[n]
 	];
-	If[!TrueQ@OptionValue@Show, Return[sols]];
-	plot = ArrayPlot[#, Mesh -> OptionValue@Mesh]&;
-	plot /@ sols
+	If[TrueQ@OptionValue@RawData, Return[sols]];
+	With[
+		{opts = Sequence @@ FilterRules[DeleteDuplicatesBy[Flatten@{o, $OptionsDefault}, First], Options[ArrayPlot]]},
+		ArrayPlot[#, opts]& /@ sols
+	]
 ];
 
 
