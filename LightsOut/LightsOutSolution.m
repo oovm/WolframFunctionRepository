@@ -8,44 +8,23 @@
 (*Wrap Function*)
 
 
-ClearAll[LightsOutSolution];
-SetAttributes[LightsOutSolution, HoldFirst];
-$OptionsDefault = {
-	Unique -> True,
-	Mesh -> All,
-	RawData -> False,
-	Frame -> False
+
+Options[LightsOutSolution] = {
+	Unique -> True
 };
-Options[LightsOutSolution] = DeleteDuplicatesBy[Join[$OptionsDefault, Options[ArrayPlot]], First];
-
-
 LightsOutSolution[n_Integer, o : OptionsPattern[]] := Block[
 	{sols},
 	If[n <= 0, Return[]];
-	sols = If[
+	If[
 		TrueQ@OptionValue@Unique,
 		essentialSolutions[n],
 		Partition[#, n]& /@ allSolutions[n]
-	];
-	If[TrueQ@OptionValue@RawData, Return[sols]];
-	With[
-		{opts = Sequence @@ FilterRules[DeleteDuplicatesBy[Flatten@{o, $OptionsDefault}, First], Options[ArrayPlot]]},
-		ArrayPlot[#, opts]& /@ sols
 	]
 ];
 
 
-LightsOutSolution /: Length[LightsOutSolution[n_, OptionsPattern[]]] := Block[
-	{},
-	If[n <= 0, Return[]];
-	If[n > Length@$FastLength, Message[General::ovfl];Return[]];
-	Return[$FastLength[[n]]]
-];
-$FastLength := $FastLength = Last /@ Import["http://oeis.org/A075463/b075463.txt", "Data"];
-
-
 (* ::Subsection:: *)
-(*LightsOutSolution*)
+(*Main Functions*)
 
 
 (* ::Subsubsection:: *)
@@ -80,3 +59,19 @@ essentialSolutions[n_] := essentialSolutions[n] = Module[
 	{as = Partition[#, n]& /@ allSolutions[n]},
 	Union[as, SameTest -> (MemberQ[DihedralOrbit[#1], #2]&)]
 ];
+
+
+(* ::Subsubsection:: *)
+(*Count Solutions*)
+
+
+countSolutions[n_Integer] := If[
+	n > Length@$FastLength,
+	Missing[],
+	$FastLength[[n]]
+];
+$FastLength := $FastLength = Last /@ Import["http://oeis.org/A075463/b075463.txt", "Data"];
+
+
+(* ::Subsection:: *)
+(*Auxiliary Functions*)

@@ -1,5 +1,8 @@
-# Template
+# LightsOut
 
+- **LightsOutGame**: 
+- **LightsOutSolution**: 
+- **LightsOutSolve**: 
 
 http://mathworld.wolfram.com/LightsOutPuzzle.html
 
