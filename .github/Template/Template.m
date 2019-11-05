@@ -9,4 +9,8 @@
 
 
 (* ::Subsubsection:: *)
-(*Main Function*)
+(*Main Functions*)
+
+
+(* ::Subsubsection:: *)
+(*Auxiliary Functions*)
