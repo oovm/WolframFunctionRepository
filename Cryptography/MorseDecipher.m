@@ -40,7 +40,7 @@ decodeMorseSignal[audio_] := Module[
 		}
 	]
 ];
-decodeCharacter[s_String] := decode[s] = Block[
+decodeCharacter[s_String] := decodeCharacter[s] = Block[
 	{x, v = $MorseRulesInverse[s]},
 	If[!MissingQ@v, Return[v]];
 	x = FromDigits[Characters[s] /. { "-" -> 1, "." -> 0}, 2];

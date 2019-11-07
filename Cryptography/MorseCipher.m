@@ -8,10 +8,10 @@
 (*Wrap Function*)
 
 
-ClearAll["`*"];
 Options[MorseCipher] = {
 	Duration -> 0.07,
-	TargetFunctions -> Audio
+	TargetFunctions -> Audio,
+	"AllowUpperCase" -> False
 };
 MorseCipher[s_String, o : OptionsPattern[]] := Switch[
 	OptionValue[TargetFunctions],
@@ -31,7 +31,7 @@ Options[createMorseAudio] = Options[MorseCipher];
 createMorseAudio[s_String, OptionsPattern[]] := Block[
 	{t, chars, events, ts, amps},
 	t = OptionValue[Duration];
-	chars = Characters@ToLowerCase[s];
+	chars = Characters@If[TrueQ@OptionValue["AllowUpperCase"], s, ToLowerCase@s];
 	events = ToExpression@Characters@StringJoin[MorseMapDigit /@ chars];
 	ts = TimeSeries[events, {0, (Length[events] - 1) * t, t}];
 	amps = AudioGenerator[ts, SampleRate -> 1000];
@@ -60,7 +60,7 @@ MorseMap[char_] := Block[
 	If[
 		MemberQ[$MorseRegistered, char],
 		Characters[$MorseRules[char]],
-		digits = IntegerDigits[First@ToCharacterCode[char, "Unicode"], 2];
+		digits = IntegerDigits[64+First@ToCharacterCode[char, "Unicode"], 2];
 		digits /. {1 -> "-", 0 -> "."}
 	]
 ];
