@@ -19,3 +19,6 @@ NetChainToGraph[net_NetChain] := Block[
 		"Output" -> NetExtract[net, "Output"]
 	]
 ];
+
+(* ::Subsubsection:: *)
+(*Auxiliary Functions*)

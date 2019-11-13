@@ -1,4 +1,17 @@
-# Template
+# NetChainToGraph
+
+
+
+
+### DeepDreamAlpha
+
+https://zhuanlan.zhihu.com/p/44184700
+
+https://zhuanlan.zhihu.com/p/28058490
+
+https://zhuanlan.zhihu.com/p/75721739
+
+
 
 ## Known problem
 
@@ -12,6 +25,13 @@
 
 静态化后能提升上百倍的计算效率
 
+
 ## Changelog
+
+
+v1.1.0
+
+monitor
+
 
 
