@@ -4,13 +4,25 @@
 (*Definition*)
 
 
-Magic3D::nosol = "No solution.";
-Magic3D::nodef = "Undefined.";
+(* ::Subsubsection:: *)
+(*Wrap Function*)
 
 
-Magic3D[2] := Message[Magic3D::nosol];
-Magic3D[n_?OddQ] := Table[n^2Mod[i - j + k - 1, n] + n Mod[i - j - k, n] + Mod[i + j + k - 2, n] + 1, {i, 1, n}, {j, 1, n}, {k, 1, n}];
-Magic3D[n_?EvenQ] := Block[
+Magic::nosol = "No solution.";
+MagicCube[n_?Internal`PositiveIntegerQ] := Which[
+	n == 2, Message[Magic::nosol];,
+	OddQ@n, MagicOdd3D[n],
+	Mod[n, 4] == 0, MagicDoubleEven3D[n],
+	True, MagicEven3D[n]
+];
+
+
+(* ::Subsubsection:: *)
+(*Main Functions*)
+
+
+MagicOdd3D[n_] := Table[n^2Mod[i - j + k - 1, n] + n Mod[i - j - k, n] + Mod[i + j + k - 2, n] + 1, {i, 1, n}, {j, 1, n}, {k, 1, n}];
+MagicEven3D[n_?EvenQ] := Block[
 	{QMagic, XMagic, upTab, downTab, d, u, v, i, j, k},
 	QMagic[x_] := If[1 <= x <= n / 2, 0, 1];
 	XMagic[x_] := Min[x, n + 1 - x];
@@ -24,10 +36,13 @@ Magic3D[n_?EvenQ] := Block[
 	downTab = Table[(n / 2)^2Mod[i - j + k - 1, n / 2] + (n / 2)Mod[i - j - k, n / 2] + Mod[i + j + k - 2, n / 2] + 1, {i, 1, n}, {j, 1, n}, {k, 1, n}];
 	upTab + downTab
 ];
-Magic3D[n_ /; n ~ Mod ~ 4 == 0] := Block[
+MagicDoubleEven3D[n_ /; n ~ Mod ~ 4 == 0] := Block[
 	{QMagic, FMagic},
 	QMagic[x_] := If[1 <= x <= n / 2, 0, 1];
 	FMagic[i_, j_, k_] := Mod[i + j + k + QMagic[i] + QMagic[j] + QMagic[k], 2];
 	Table[If[FMagic[i, j, k] == 1, (i - 1)n^2 + (j - 1)n + k, 1 - k + n(1 - j + n(1 - i + n))], {i, 1, n}, {j, 1, n}, {k, 1, n}]
 ];
-Magic3D[x_] := Message[Magic3D::nodef];
+
+
+(* ::Subsubsection:: *)
+(*Auxiliary Functions*)

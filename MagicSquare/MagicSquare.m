@@ -9,12 +9,11 @@
 
 
 Magic::nosol = "No solution.";
-MagicSquare[n_?Internal`PositiveIntegerQ] := Block[
-	{},
-	If[n == 2, Message[Magic::nosol];Return[]];
-	If[OddQ@n, Return@MagicOdd2D[n]];
-	If[Mod[n, 4] == 0, Return@MagicDoubleEven2D[n]];
-	MagicEven2D[n]
+MagicSquare[n_?Internal`PositiveIntegerQ] := Which[
+	n == 2, Message[Magic::nosol];,
+	OddQ@n, MagicOdd2D[n],
+	Mod[n, 4] == 0, MagicDoubleEven2D[n],
+	True, MagicEven2D[n]
 ];
 
 
