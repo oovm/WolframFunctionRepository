@@ -7,26 +7,30 @@
 (* ::Subsubsection:: *)
 (*Wrap Function*)
 
+
 Options[RandomColorBlindTest] = {
-
+	TimeConstraint -> 2,
+	FontSize -> 300,
+	FontFamily -> "Arial",
+	ColorFunction -> {
+		ColorData["Aquamarine"],
+		ColorData["SunsetColors"]
+	}
 };
-RandomColorBlindTest[o : OptionsPattern[]] := {};
-
-
-max = 8;
-min = 2;
-pad = 1;
-background = 12;
-shape = Binarize@ColorNegate@ImageResize[
-	Rasterize@Style[
-		"GGG",
-		Bold,
-		FontFamily -> "Arial",
-		FontSize -> 300
-	],
-	Scaled[1 / 2]
+RandomColorBlindTest[in_, o : OptionsPattern[]] := Block[
+	{text, shape},
+	text = Style[
+		ToString@in, Bold,
+		FontFamily -> OptionValue[FontFamily],
+		FontSize -> OptionValue[FontSize]
+	];
+	shape = Binarize@ColorNegate@ImageResize[
+		Rasterize@text,
+		Scaled[1 / 2]
+	];
+	generator[shape, 8, 2, 1, 12, o]
 ];
-generator[shape, max, min, pad, background]
+
 
 (* ::Subsubsection:: *)
 (*Main Function*)
@@ -45,12 +49,10 @@ Options[generator] = Options[RandomColorBlindTest];
 generator[shape_, max_, min_, pad_, background_, o : OptionsPattern[]] := Block[
 	{
 		centers , radii , colors, color1, color2,
-		time, shape, dim, dt, pt, m, d, r
+		dim, dt, pt, m, d, r
 	},
 	centers = radii = colors = {};
-	color1 = ColorData["Aquamarine"];
-	color2 = ColorData["SunsetColors"];
-	time = 2;
+	{color1, color2} = OptionValue[ColorFunction];
 	dim = ImageDimensions[shape];
 	dt = DistanceTransform[shape];
 	TimeConstrained[
@@ -67,8 +69,8 @@ generator[shape_, max_, min_, pad_, background_, o : OptionsPattern[]] := Block[
 			radii = Join[radii, {r}];
 			colors = Join[colors, {Blend[{color2@RandomReal[{0.4, 0.7}], color1@RandomReal[{0.4, 0.7}]}, Piecewise[{{1 / max * (m - background), m < background + max / 2}, {1, m >= background + max / 2}}]]}]
 		],
-		time
+		OptionValue[TimeConstraint],
+		(*Min[Length/@{colors, centers, radii}]*)
+		Graphics@MapThread[{#1, Disk[#2, #3]} &, GeneralUtilities`TrimRight[{colors, centers, radii}]]
 	];
-	(*Min[Length/@{colors, centers, radii}]*)
-	Graphics@MapThread[{#1, Disk[#2, #3]} &, GeneralUtilities`TrimRight[{colors, centers, radii}]]
 ]
