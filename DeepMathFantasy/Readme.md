@@ -1,9 +1,9 @@
 # NetChainToGraph
 
 
+## Reference
 
-
-### DeepDreamAlpha
+- DeepDreamAlpha
 
 https://zhuanlan.zhihu.com/p/44184700
 
@@ -13,7 +13,9 @@ https://zhuanlan.zhihu.com/p/75721739
 
 
 
-## Known problem
+## Known problems
+
+- DeepDreamBeta
 
 - 视频抖动
 
