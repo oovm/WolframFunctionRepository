@@ -9,6 +9,7 @@ https://www.zhihu.com/question/22506052
 
 ### v1.2
 
+- 新增 SpectogramEncode
 
 ### v1.1 
 
@@ -16,3 +17,5 @@ https://www.zhihu.com/question/22506052
 
 ### v1.0
 
+- 新增 MorseCipher
+- 新增 MorseDecipher

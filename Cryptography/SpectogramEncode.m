@@ -12,13 +12,13 @@
 (*Main Functions*)
 
 
-Options[SteganographyAudio] = {
-	Duration -> 10
+Options[SpectogramEncode] = {
+	"Duration" -> 10
 };
-SteganographyAudio[s_String, o : OptionsPattern[]] := SteganographyAudio[s, 2000, o];
-SteganographyAudio[s_String, sample_Integer, o : OptionsPattern[]] := Block[
+SpectogramEncode[s_String, o : OptionsPattern[]] := SpectogramEncode[s, 2000, o];
+SpectogramEncode[s_String, sample_Integer, o : OptionsPattern[]] := Block[
 	{time, text, imgdata, list, listcompete},
-	time = OptionValue[Duration];
+	time = OptionValue["Duration"];
 	time = Switch[
 		Head@time,
 		Quantity, First@UnitConvert[time, "Seconds"],
