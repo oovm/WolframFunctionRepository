@@ -8,6 +8,38 @@
 (*Wrap Function*)
 
 
+Options[BrainLanguageEncode] = {
+	TranslationOptions -> "Normal"
+};
+BrainLanguageEncode[in_String, o : OptionsPattern[]] := Block[
+	{codes, state, out},
+	codes = ToCharacterCode[in, "UTF8"];
+	state = Normal /@ RandomChoice@$States;
+	out = Fold[update, state, codes]["Head"];
+	wrap[ToLowerCase@OptionValue[TranslationOptions], out]
+];
+wrap["normal", out_String] := out;
+wrap["refined", out_String] := StringReplace[out, Whitespace -> ""];
+wrap["ook", out_String] := GeneralUtilities`Scope[
+	orders = Characters@StringReplace[out, Whitespace -> ""] /. getRule["Ook"];
+	StringRiffle[Partition[orders, UpTo@8], "\n", " "]
+];
+wrap["dao", out_String] := GeneralUtilities`Scope[
+	orders = Characters@StringReplace[out, Whitespace -> ""] /. getRule["Dao"];
+	StringRiffle[Partition[orders, UpTo@64], "\n", ""]
+];
+wrap["\:5468\:6613", out_String] := GeneralUtilities`Scope[
+	orders = Characters@StringReplace[out, Whitespace -> ""] /. getRule["\:5468\:6613"];
+	StringRiffle[Partition[orders, UpTo@8], "\n", " "]
+];
+wrap["chinese", out_String] := GeneralUtilities`Scope[
+	orders = Characters@out /. getRule["Chinese"];
+	StringRiffle[orders, ""]
+];
+wrap["number", out_String] := "0o" <> StringReplace[StringReplace[out, Whitespace -> ""], getRule["Number"]];
+wrap["octal", out_String] := wrap["number", out];
+
+
 (* ::Subsubsection:: *)
 (*Main Functions*)
 
@@ -62,6 +94,22 @@ apiEncode[text_String] := Block[
 ];
 
 
+getRule[name_] := getRule[name] = Thread[charSet["Normal"] -> charSet[name]];
+charSet[list_List] := ToString /@ list;
+charSet["Normal"] = {">", "<", "+", "-", "[", "]", ".", ","};
+charSet["Number"] = {"0", "1", "2", "3", "4", "5", "6", "7"};
+charSet["Chinese"] = {"\:53f3", "\:5de6", "\:589e", "\:51cf", "\:59cb", "\:7ec8", "\:5199", "\:8bfb"};
+charSet["Dao"] = {"\:2634", "\:2633", "\:2631", "\:2636", "\:2630", "\:2637", "\:2632", "\:2635"};
+charSet["\:5468\:6613"] = {"\:5dfd", "\:9707", "\:514c", "\:826e", "\:5764", "\:4e7e", "\:96e2", "\:574e"};
+charSet["Ook"] = {
+	"Ook. Ook?", "Ook? Ook.",
+	"Ook. Ook.", "Ook! Ook!",
+	"Ook! Ook?", "Ook? Ook!",
+	"Ook! Ook.", "Ook. Ook!"
+};
+
+
+(*pre-computed states*)
 $States = {
 	<|
 		"Head" -> "-[[<+>->+>+<<]>]",
