@@ -10,9 +10,10 @@
 
 (* ::Subsection:: *)
 (*Main Functions*)
-Options[TupperK] = {};
-TupperK[img_Image, o : OptionsPattern[]] := TupperK[img, 17, o];
-TupperK[img_Image, p_?PrimeQ, o : OptionsPattern[]] := Module[
+TupperCipher[text_String] := TupperCipher[text, 17];
+TupperCipher[text_String, p_?PrimeQ] := TupperCipher[Rasterize[Text@text, ImageSize -> {Automatic, p}], p];
+TupperCipher[img_Image] := TupperCipher[img, 17];
+TupperCipher[img_Image, p_?PrimeQ] := Block[
 	{i, m, r},
 	i = ImageResize[img, {Automatic, p}];
 	m = Map[Boole[Max@# < 1]&, ImageData[i], {2}];
