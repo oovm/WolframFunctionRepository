@@ -18,4 +18,4 @@ Tracking the features and issues of these functions I uploaded.
 
 ### Random
 
-- [RandomMondrian](./RandomMondrian)
+- [RandomMondrian](Random)
