@@ -8,17 +8,20 @@
 (*Wrap Function*)
 
 
-
 Options[LightsOutSolution] = {
-	Unique -> True
+	Method -> "Unique"
 };
 LightsOutSolution[n_Integer, o : OptionsPattern[]] := Block[
-	{sols},
+	{},
 	If[n <= 0, Return[]];
-	If[
-		TrueQ@OptionValue@Unique,
-		essentialSolutions[n],
-		Partition[#, n]& /@ allSolutions[n]
+	Switch[
+		OptionValue@Method,
+		"Unique", uniqueSolutions[n],
+		"All", allSolutions[n],
+		"AllCount", countAll[n],
+		"Essential", essentialSolutions[n],
+		"EssentialCount", countEssential[n],
+		_, Return[]
 	]
 ];
 
@@ -39,9 +42,10 @@ b[n_] := Table[1, {n^2}];
 sol[n_] := LinearSolve[m[n], b[n], Modulus -> 2];
 
 
-allSolutions[n_] := Module[
-	{s = sol[n], k = ker[n]},
-	Mod[(s + #)& /@ (Total[(# * k)]& /@ Tuples[{0, 1}, Length[k]]), 2]
+allSolutions[n_] := Block[
+	{s = sol[n], k = ker[n], solutions},
+	solutions = Mod[(s + #)& /@ (Total[(# * k)]& /@ Tuples[{0, 1}, Length[k]]), 2];
+	Partition[#, n]& /@ solutions
 ];
 
 
@@ -65,12 +69,28 @@ essentialSolutions[n_] := essentialSolutions[n] = Module[
 (*Count Solutions*)
 
 
-countSolutions[n_Integer] := If[
-	n > Length@$FastLength,
+countAll[n_Integer] := If[
+	n > Length@$A075462,
 	Missing[],
-	$FastLength[[n]]
+	$A075462[[n]]
 ];
-$FastLength := $FastLength = Last /@ Import["http://oeis.org/A075463/b075463.txt", "Data"];
+countEssential[n_Integer] := If[
+	n > Length@$A075463,
+	Missing[],
+	$A075463[[n]]
+];
+$A075462 := $A075462 = Last /@ Import["http://oeis.org/A075462/b075462.txt", "Data"];
+$A075463 := $A075463 = Last /@ Import["http://oeis.org/A075463/b075463.txt", "Data"];
+
+
+(* ::Subsubsection:: *)
+(*Unique Solutions*)
+
+
+uniqueSolutions[n_] := Block[
+	{mat = AdjacencyMatrix[GridGraph[{n, n}]] + IdentityMatrix[n * n]},
+	Partition[LinearSolve[mat, Table[1, {n * n}], Modulus -> 2], n]
+];
 
 
 (* ::Subsection:: *)

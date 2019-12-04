@@ -10,6 +10,8 @@
 
 (* ::Subsubsection:: *)
 (*Main Function*)
+
+
 NetChainToGraph[other___] := other;
 NetChainToGraph[net_NetChain] := Block[
 	{nets = Normal@net},
@@ -19,6 +21,8 @@ NetChainToGraph[net_NetChain] := Block[
 		"Output" -> NetExtract[net, "Output"]
 	]
 ];
+
+
 
 (* ::Subsubsection:: *)
 (*Auxiliary Functions*)

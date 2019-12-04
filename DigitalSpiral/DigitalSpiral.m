@@ -8,6 +8,10 @@
 (*Wrap Function*)
 
 
+(* ::Subsubsection:: *)
+(*Main Function*)
+
+
 Options[DigitalSpiral] = {
 	FontFamily -> "Helvetica",
 	FontSize -> 0.0655,
@@ -18,12 +22,12 @@ Options[DigitalSpiral] = {
 DigitalSpiral[n_?NumericQ, i_Integer : 5000 , o : OptionsPattern[]] := Block[
 	{fs, number, num },
 	fs = OptionValue[FontSize];
-	{number, num} = RealDigits[n , OptionValue["Base"], i];
+	{number, num} = RealDigits[n , OptionValue["Base"], i] /. {Indeterminate -> 0};
 	Graphics[
 		MapIndexed[
 			Block[
 				{angle, scale},
-				angle = (-(#2[[1]] - 2) + Switch[#2[[1]], 1, -0.1, 2, 0, _, 0.6]) fs;
+				angle = fs * (2 - First@#2);
 				scale = (1 - 1.5 fs)^(-angle / (2 Pi));
 				GeometricTransformation[
 					getRender[#, OptionValue[FontFamily]],
@@ -47,15 +51,14 @@ DigitalSpiral[n_?NumericQ, i_Integer : 5000 , o : OptionsPattern[]] := Block[
 
 
 (* ::Subsubsection:: *)
-(*Main Function*)
+(*Auxiliary Functions*)
 
 
 $DefaultDigitSet = Join[CharacterRange["0", "9"], CharacterRange["a", "z"]];
-$DefaultDigitFont = "Arial";
 DigitRender[char_String, font_String] := Block[
 	{export, trans = Translate[#, {-4.5, -10}] & },
-	export = ExportString[ Style[char, FontSize -> 24, FontFamily -> font], "PDF"];
+	export = ExportString[Style[char, FontSize -> 24, FontFamily -> font], "PDF"];
 	trans /@ ImportString[export, "PDF", "TextMode" -> "Outlines"][[1, 1]]
 ];
-getRender[-1, f_String] := getRender[-1, f] = DigitRender[".", f]
-getRender[i_, f_String] := getRender[i, f] = DigitRender[$DefaultDigitSet[[i + 1]], f]
+getRender[-1, f_String] := getRender[-1, f] = DigitRender[".", f];
+getRender[i_, f_String] := getRender[i, f] = DigitRender[$DefaultDigitSet[[i + 1]], f];

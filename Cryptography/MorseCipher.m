@@ -20,7 +20,7 @@ MorseCipher[s_String, o : OptionsPattern[]] := Switch[
 	List, createMorseList[s, o],
 	_ , Return[]
 ];
-MorseCipher[Rule] = $MorseRules;
+MorseCipher[Rule] := $MorseRules;
 
 
 (* ::Subsubsection:: *)
